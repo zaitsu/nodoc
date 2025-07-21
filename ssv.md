@@ -213,17 +213,17 @@ docker compose --profile dkg run --rm ssv-dkg ping --ip https://xxx.xxx.xxx.xxxx
 
 正常に設定されると、次のようなメッセージが表示されます。
 
-<img src="./img/upload_89b603bf376b8640dabec3d26471dfd4" width="1200">
+<img src="./img/upload_89b603bf376b8640dabec3d26471dfd4.png" width="1200">
 
 ## Publishing the DKG endpoint to the operator registry
 
 画面の右上隅にある 3つのドットボタンを選択し、`Operator details` `Edit Details` オプションを選択します。
 
-<img src="./img/upload_627cb169592b23a682631cc43ba2a161" width="1200">
+<img src="./img/upload_627cb169592b23a682631cc43ba2a161.png" width="1200">
 
 画面下部の`DKG Endpoint`フィールドにURLを入力し、`Update`ボタンをクリックして、署名で変更を確認します。
 
-<img src="./img/upload_f46d6e37ecfa8bb28df4099d81bcede3" width="1200">
+<img src="./img/upload_f46d6e37ecfa8bb28df4099d81bcede3.png" width="1200">
 
 ## Creating the DV cluster
 
@@ -233,35 +233,35 @@ docker compose --profile dkg run --rm ssv-dkg ping --ip https://xxx.xxx.xxx.xxxx
 
 すべてのクラスターメンバーがオペレーターを登録すると、クラスターメンバーの 1 つが SSV Web アプリを開き、`Safe`クラスターウォレットを接続します。
 
-<img src="./img/upload_59ebb9d3c7ac58d6d3faccab420f19b5" width="1200">
+<img src="./img/upload_59ebb9d3c7ac58d6d3faccab420f19b5.png" width="1200">
 
 それから次のページの`Distribute Validator`ボタンをクリックします。
 
-<img src="./img/upload_53b0d22b09fea3e1fde8ed331862b0e9" width="1200">
+<img src="./img/upload_53b0d22b09fea3e1fde8ed331862b0e9.png" width="1200">
 
 そして `Generate new key shares` ボタンをクリックします。
 
-<img src="./img/upload_9f119de847bd7d949a7779710913e97e" width="1200">
+<img src="./img/upload_9f119de847bd7d949a7779710913e97e.png" width="1200">
 
 クラスターサイズを選択し、リストからクラスターオペレーターを選択して、 `Next`ボタンをクリックします。
 
-<img src="./img/upload_83620a211bfd3956b3ebfce9763bda9e" width="1200">
+<img src="./img/upload_83620a211bfd3956b3ebfce9763bda9e.png" width="1200">
 
 `Offline` ボタンをクリックします。
 
-<img src="./img/upload_9e8ec7c71fd9aa2a609b11bb9d8994b9" width="1200">
+<img src="./img/upload_9e8ec7c71fd9aa2a609b11bb9d8994b9.png" width="1200">
 
 次の画面で、クラスターが実行するバリデーターの数を選択し、`Withdrawal Address` に Lido の[ドキュメント](https://docs.lido.fi/deployed-contracts/hoodi-lidov3) に従って、`Withdrawal Vault` を指定し、 その横にある`Confirm`ボタンをクリックします。
 
 注記: メインネットの `Withdrawal Vault addresses` は `0xB9D7934878B5FB9610B3fE8A5e441e8fad7E293f` ([source](https://docs.lido.fi/deployed-contracts/))
 
-<img src="./img/upload_5a23ee256c55bb0154be7b17c89121e0" width="1200">
+<img src="./img/upload_5a23ee256c55bb0154be7b17c89121e0.png" width="1200">
 
 確認したら、オペレーティングシステムを選択し、`DKG ceremony`コマンドをコピーします。このコマンドは`Docker`がインストールされている任意のマシンで実行できます。
 
 コマンドを実行すると、DKGセレモニーが無事に完了したことを示す次のような画面が表示されます。
 
-<img src="./img/upload_39e7b6470c634b94ddbdc70239564c92" width="1200">
+<img src="./img/upload_39e7b6470c634b94ddbdc70239564c92.png" width="1200">
 
 いくつかの `ceremony-yyyy-MM-dd--hh-mm-ss.mmm` ファイルが生成され、バリデーターキーごとに複数のサブフォルダを持つ `[nonce]-[validator_pubkey]`:
 
@@ -273,63 +273,63 @@ docker compose --profile dkg run --rm ssv-dkg ping --ip https://xxx.xxx.xxx.xxxx
 
 **すべてのファイルを安全にバックアップしてください。**
 
-<img src="./img/upload_0944a2a0faaeb613bc9cbfe62bc686ec" width="1200">
+<img src="./img/upload_0944a2a0faaeb613bc9cbfe62bc686ec.png" width="1200">
 
 ウェブブラウザに戻り、バリデーターの入金に関する記述を確認し(ただし、現時点ではまだ行われていません)、`Register Validator`ボタンをクリックしてください。
 
-<img src="./img/upload_3f41edd4685b817e8f5278ce04441fd8" width="1200">
+<img src="./img/upload_3f41edd4685b817e8f5278ce04441fd8.png" width="1200">
 
 登録しようとしているバリデーターを選択し、`Next`ボタンをクリックします。
 
 注記: 1回のトランザクションで登録できるバリデーターは20人までに制限されています。これは、`Safe`Walletの制限によるものです。このため、1つのkeyshares.jsonファイルから20人以上のバリデータを登録する必要がある場合は、実際にDKGセレモニーを実行せずに上記の手順を繰り返し、同じkeyshares.jsonファイルを複数回アップロードする必要があります。SSV Webアプリは、以前に登録されたバリデーターを「自動的に」認識し、スキップします。
 
-<img src="./img/upload_06d9273fd18658db0b6cd8a7604fe9a6" width="1200">
+<img src="./img/upload_06d9273fd18658db0b6cd8a7604fe9a6.png" width="1200">
 
 資金調達画面で、クラスターの実行時間を選択し、`Next`ボタンをクリックします。
 
 注記: HoodiネットワークでSSVトークンを取得するには、公式のSSV [Faucet](https://faucet.ssv.network/request)を使用できます。
 
-<img src="./img/upload_ca08c26d1f2e0a206c7215b29bb7288d" width="1200">
+<img src="./img/upload_ca08c26d1f2e0a206c7215b29bb7288d.png" width="1200">
 
 クラスターの残高と手数料に関する警告を確認して同意し、`Next`ボタンをクリックします。
 
-<img src="./img/upload_326ac5b774282217a7dbdde19a043d92" width="1200">
+<img src="./img/upload_326ac5b774282217a7dbdde19a043d92.png" width="1200">
 
 スラッシングリスクに関する警告を確認して同意し、`Next`ボタンをクリックします。
 
-<img src="./img/upload_2210bada7817223607670e0d87a24f1a" width="1200">
+<img src="./img/upload_2210bada7817223607670e0d87a24f1a.png" width="1200">
 
 SSVの支払いを承認します。
 
-<img src="./img/upload_5f27ff3061e952785807671ecb8dc2ae" width="1200">
+<img src="./img/upload_5f27ff3061e952785807671ecb8dc2ae.png" width="1200">
 
 `Safe`でトランザクションに署名し、他のクラスタメンバーと共有します。
 
-<img src="./img/upload_88974802dffcb412f888e14ee5a69fdb" width="1200">
+<img src="./img/upload_88974802dffcb412f888e14ee5a69fdb.png" width="1200">
 
 署名のしきい値に達し、トランザクションが実行されたら、`Register Validators`ボタンをクリックします。
 
-<img src="./img/upload_9aaa60458d6319b99f2f6945f27fb5e0" width="1200">
+<img src="./img/upload_9aaa60458d6319b99f2f6945f27fb5e0.png" width="1200">
 
 再度署名し、トランザクションを他のクラスタ・メンバーと共有します。
 
-<img src="./img/upload_d624a17aaf5c92871169e7ab990ffbc9" width="1200">
+<img src="./img/upload_d624a17aaf5c92871169e7ab990ffbc9.png" width="1200">
 
 最後のステップは、クラスター料金の受取人をLidoの`Execution Layer Rewards Vault` - `0x99137683D4AAfaf76C84bD8F6e2Ae6A95DF90912` に指定します。
 
 これを行うには、`My Account`タブをクリックし、`Fee Address`ボタンをクリックします。
 
-<img src="./img/upload_54d2f53d84b8c6632a05fda9f8bafbd0" width="1200">
+<img src="./img/upload_54d2f53d84b8c6632a05fda9f8bafbd0.png" width="1200">
 
 `Fee Recipient Address`フィールドをLidoの[ドキュメント](https://docs.lido.fi/deployed-contracts/hoodi-lidov3)に従って`Execution Layer Rewards Vault: 0x99137683D4AAfaf76C84bD8F6e2Ae6A95DF90912`を設定し、`Update`ボタンをクリックします。
 
 注記: メインネットの`Fee Recipient address`は`0x388C818CA8B9251b393131C08a736A67ccB19297`([source](https://docs.lido.fi/deployed-contracts))
 
-<img src="./img/upload_0499c18b4b97aa660d84951f2c646e4b" width="1200">
+<img src="./img/upload_0499c18b4b97aa660d84951f2c646e4b.png" width="1200">
 
 再度`Safe`にサインインし、トランザクション承認のために他のクラスターメンバーと共有します。
 
-<img src="./img/upload_74f2b5c6a587132973b626218d6b52b6" width="1200">
+<img src="./img/upload_74f2b5c6a587132973b626218d6b52b6.png" width="1200">
 
 この後、バリデーターを`Lido CSM`に登録する準備が整います。
 
@@ -357,7 +357,7 @@ Lido CSM モジュールにキーをデプロイする前に、各クラスタ �
 
 `Safe`ウォレットアプリで、バリデーターをSSVに登録したトランザクションを特定し、`Copy`アイコンをクリックしてトランザクションハッシュをコピーします。
 
-<img src="./img/upload_12e21eb771705cb1dba26a3c0d707718" width="1200">
+<img src="./img/upload_12e21eb771705cb1dba26a3c0d707718.png" width="1200">
 
 次に、クラスタディレクトリで次のコマンドを実行します。
 
@@ -372,7 +372,7 @@ merge-deposit /dkg -t <TX_HASH_FROM_SAFE> -o /output
 
 予想される結果は、次の画面のようになります。
 
-<img src="./img/upload_eaec19451c0d303f20e5f2dd455779a9" width="1200">
+<img src="./img/upload_eaec19451c0d303f20e5f2dd455779a9.png" width="1200">
 
 このツールは、SSV APIを使用して、登録されたバリデーターの有効性(つまり、キー共有、ユーザーナンス、および関連するオペレーターキーの正確性)を検証します。
 
@@ -381,7 +381,7 @@ merge-deposit /dkg -t <TX_HASH_FROM_SAFE> -o /output
 
 これを行うには、クラスターのマルチシグアカウントで[SSV Web](https://app.ssv.network/)アプリにログインします。`My Account`ページで、クラスタが 1 つしかなく、その中のオペレータが予期されるクラスタ参加者であることを確認します。(少なくとも)バリデーターの1つの公開鍵をクラスターからコピーするには、コピーアイコンをクリックします。
 
-<img src="./img/upload_ac150d44d1734ce9bf3c5783dd87ab60" width="1200">
+<img src="./img/upload_ac150d44d1734ce9bf3c5783dd87ab60.png" width="1200">
 
 次に、`merge-output`フォルダ内の`deposit-data.json`ファイルを`grep`して、一致する公開鍵があることを確認します。
 
@@ -390,7 +390,7 @@ cat merge-output/deposit_data-yyyy-MM-ddThh-mm-ssZ.json \
 | grep --color -E <validator_pub_key>
 ```
 
-<img src="./img/upload_7803e13eb05e3dd36c6eed0d2643116d" width="1200">
+<img src="./img/upload_7803e13eb05e3dd36c6eed0d2643116d.png" width="1200">
 
 ## Deploy the keys to Lido CSM
 
@@ -398,29 +398,29 @@ cat merge-output/deposit_data-yyyy-MM-ddThh-mm-ssZ.json \
 `mode-extended`パラメータに注意してください。これにより、Lido CSMの報酬アドレスを以前に作成した分割契約に設定することができます。
 `WalletConnect`を使用してクラスタ`Safe`をウィジェットに接続します。
 
-<img src="./img/upload_ce917f5ba09606d8c161faf71e61f7ed" width="1200">
+<img src="./img/upload_ce917f5ba09606d8c161faf71e61f7ed.png" width="1200">
 
 接続リンクをコピーします...
 
-<img src="./img/upload_88fe79ca5834db92c088a977d0519a1b" width="1200">
+<img src="./img/upload_88fe79ca5834db92c088a977d0519a1b.png" width="1200">
 
 それを `Safe` `WalletConnect` 画面に貼り付けます。
 
-<img src="./img/upload_d3ffd10da0f6a7570adb0d83e73972df" width="1200">
+<img src="./img/upload_d3ffd10da0f6a7570adb0d83e73972df.png" width="1200">
 
 次に`Create Node Operator`ボタンをクリックします。
 
-<img src="./img/upload_b1908c079db963f5bba3e36b47876666" width="1200">
+<img src="./img/upload_b1908c079db963f5bba3e36b47876666.png" width="1200">
 
 `Upload deposit data`フィールドに`deposit-data.json`の中身を貼り付けます。
 
 クラスター`Safe`には、債券をカバーするのに十分なETH/stETH/wstETHが預けられている必要があります。
 
-<img src="./img/upload_cea8ca9bf6852f7a3ab311e3c975b61e" width="1200">
+<img src="./img/upload_cea8ca9bf6852f7a3ab311e3c975b61e.png" width="1200">
 
 `Specify custom addresses`セクションを展開します...
 
-<img src="./img/upload_8861824de32bdea38a422b60290d5279" width="1200">
+<img src="./img/upload_8861824de32bdea38a422b60290d5279.png" width="1200">
 
 `Reward Address`を`Splits`コントラクトアドレスに指定、`Manager Address`フィールドを`Safe`ウォレットアドレスに指定します。
 
@@ -430,19 +430,19 @@ cat merge-output/deposit_data-yyyy-MM-ddThh-mm-ssZ.json \
 
 正しいアドレスが設定されていることを確認し、`Create Node Operator`ボタンをクリックします。
 
-<img src="./img/upload_4cb1fbd8b87f0b5dc947be17a9e42d9f" width="1200">
+<img src="./img/upload_4cb1fbd8b87f0b5dc947be17a9e42d9f.png" width="1200">
 
 `Safe`でトランザクションに署名し、他のクラスタメンバーと共有します。
 
-<img src="./img/upload_1318b2f5d1c43d601e424baf68041503" width="1200">
+<img src="./img/upload_1318b2f5d1c43d601e424baf68041503.png" width="1200">
 
 取引に署名する前に、残りのメンバーは、取引の詳細に正しいマネージャーアドレス(`Safe`のアドレス)と報酬アドレス(Splitsコントラクトのアドレス)が含まれていることを確認する必要があります。
 
-<img src="./img/upload_d83befba4b7e21913011c532bcbf8f8b" width="1200">
+<img src="./img/upload_d83befba4b7e21913011c532bcbf8f8b.png" width="1200">
 
 署名のしきい値に達し、トランザクションが実行されると、クラスタはLido CSMから入金する準備が整います。
 
-<img src="./img/upload_df324e8937bfc2565235936d1d463b73" width="1200">
+<img src="./img/upload_df324e8937bfc2565235936d1d463b73.png" width="1200">
 
 ## Monitoring the CSM operator
 
@@ -456,13 +456,13 @@ CSMの報酬には、ボンズ報酬とオペレーター報酬の2種類があ�
 
 **警告:報酬はwstETH(Wrapped Staked Ether)で請求してください。これはSplitコントラクトと互換性のある唯一のトークンです。ETHをリクエストすると、スプリッターコントラクトでは配布できない出金請求を表すNFTを受け取ります。 stETHはリベーストークンであり、供給量が減少または増加すると、すべての受信者が自分のシェアを引き出すことができなくなるか、利回りがスプリットで停止します。詳細については、splits.org のドキュメントを参照してください。**
 
-<img src="./img/upload_e61118e39c370aef02cf92bbcf96e1ea" width="1200">
+<img src="./img/upload_e61118e39c370aef02cf92bbcf96e1ea.png" width="1200">
 
 ## Exiting Validators
 
 [SSV Web](https://app.ssv.network/)アプリを使用してバリデーターを終了できます。
 
-<img src="./img/upload_ad6a86e2df828ad365540850c775f60c" width="1200">
+<img src="./img/upload_ad6a86e2df828ad365540850c775f60c.png" width="1200">
 
 バリデータの`Exit`トランザクションが承認されるまでは若干時間がかかります。
 
