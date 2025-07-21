@@ -354,6 +354,222 @@ sudo apt autoremove --purge
 docker system prune -a --volumes
 ```
 
+### Network
+
+#### Zero Trust
+
+以下の二つのデーモンをインストールして可能な限りの冗長性を確保します。
+
+- [Tailscale](https://login.tailscale.com/admin/machines)
+    - プライベートネットワークを構成します
+    - プライベートネットワーク経由のアクセスは想像以上にレイテンシーが低いです
+- [Cloudflare Tunnel](https://one.dash.cloudflare.com/11d089e67c8895aaf7f0704c2b192bb0/networks/tunnels)
+    - パブリックにエンドポイントを後悔するために利用します
+    - こちらもCloudflareのエッジ経由のアクセスは想像以上にレイテンシーが低いです
+    - Tunnelを構成した後はIPフィルタを追加して、接続してくるDVTノードからしか接続できないように構成して下さい
+
+#### Availability
+
+DVTノードからELとCLを設定するにあたってSSVやObolの設定ファイルに2つのエンドポイントを書く方法があります。
+
+上記の方法はプライマリのエンドポイントがダウンしていることを確認してからセカンダリに接続するフェイルバック方式になっています。
+
+フェイルバック方式は可溶性の面であまり信用がならない可能性があるため、独自に[FRRouting](https://docs.frrouting.org/en/latest/index.html)でフェイルオーバー設定します。
+
+##### Tailscaleネットワーク上でのAnycast VIP構築
+
+ここでの目標は、パブリックなBGP広報（ASNが必要）の代わりに、Tailscaleが提供するプライベートなオーバーレイネットワーク上で、ホスト1と2間のiBGPセッションを確立し、Anycast VIPによるフェイルオーバーを実現することです。
+
+###### アーキテクチャの概念整理
+
+| No. | 経路の種類 | 目的 | 経路 | IPアドレス | 高可用性（HA）の仕組み |
+|-----||------------|------|------|------------|------------------------|
+| 1 | パブリック経路 | Dvtノードからのアクセス1 | Cloudflare Tunnel | `<LOAD_BALANCER_PUBLIC_IP>` | ルーター/LBの負荷分散・ヘルスチェック機能 |
+| 2 | プライベート経路 | Dvtノードからのアクセス2 | Tailscaleオーバーレイネットワーク | `<TAILSCALE_ANYCAST_VIP>` | FRR (BGP+BFD) による自動フェイルオーバー |
+
+この設計により2つの独立したエンドポイントを持つことになり、どちらかの経路に障害が発生しても、もう一方の経路で運用を継続できます。
+
+どちらを主にするかは以下のようなコマンドで実際のエンドポイントに対してDvtノードからレイテンシを計測してから決めて下さい。
+
+
+- 1. Cloudflare Tunnel
+    ```
+    curl -w"http_code: %{http_code}\ntime_namelookup: %{time_namelookup}\ntime_connect: %{time_connect}\ntime_appconnect: %{time_appconnect}\ntime_pretransfer: %{time_pretransfer}\ntime_starttransfer: %{time_starttransfer}\ntime_total: %{time_total}\n" -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' http://10.0.0.100:8545
+    ```
+- 2. Private on Tailscale Overlay Network
+    ```
+    curl -w"http_code: %{http_code}\ntime_namelookup: %{time_namelookup}\ntime_connect: %{time_connect}\ntime_appconnect: %{time_appconnect}\ntime_pretransfer: %{time_pretransfer}\ntime_starttransfer: %{time_starttransfer}\ntime_total: %{time_total}\n" -X POST -H "Content-Type: application/json" --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' https://trdiyt.michizane.com/rpc
+    ```
+
+###### FRR設定
+
+ELとCLを実行してるホスト2台で設定します。
+
+1. FRRoutingをDebレポジトリからインストール
+    - https://deb.frrouting.org/
+        ```
+        # add GPG key
+        curl -s https://deb.frrouting.org/frr/keys.gpg | sudo tee /usr/share/keyrings/frrouting.gpg > /dev/null
+
+        # possible values for FRRVER:
+        frr-6 frr-7 frr-8 frr-9 frr-9.0 frr-9.1 frr-10 frr10.0 frr10.1 frr-10.2 frr-10.3 frr-rc frr-stable
+        # frr-stable will be the latest official stable release. frr-rc is the latest release candidate in beta testing
+        FRRVER="frr-stable"
+        echo deb '[signed-by=/usr/share/keyrings/frrouting.gpg]' https://deb.frrouting.org/frr \
+             $(lsb_release -s -c) $FRRVER | sudo tee -a /etc/apt/sources.list.d/frr.list
+
+        # update and install FRR
+        sudo apt update && sudo apt install frr frr-pythontools
+        ```
+1. `vtysh`コマンドを使用したFRR設定
+    - vtysh は、FRRの各デーモン（bgpd, bfddなど）を統合的に設定するためのコマンドラインインターフェースです。
+    - これから行う設定は、TailscaleのIPアドレスを使って2台のホスト間でiBGPピアを確立し、BFDで高速な障害検知を有効化し、Anycast VIP (10.0.0.100/32) の経路情報を交換するものです。
+    1. ホスト1で実行するコマンド
+        - まず、ホスト1にSSHでログインし、以下のコマンドを順に実行してください。`<HOST_ALPHA_TAILSCALE_IP>`と`<HOST_BETA_TAILSCALE_IP>`の部分は、実際のTailscale IPアドレスに置き換えてください。
+            ```bash
+            # FRRの対話型シェルを起動します。
+            sudo vtysh
+            ```
+        - `vtysh`が起動すると、プロンプトが`hostname#`のように変わります。ここから以下のコマンドを一行ずつ入力していきます。
+            ```
+            # グローバルコンフィギュレーションモードに移行します。
+            configure terminal
+
+            # --- BGPの設定を開始します ---
+            # プライベートAS番号65001を使用してBGPプロセスを開始します。
+            router bgp 65001
+
+            # BGPルーターを識別するためのIDとして、ホストα自身のTailscale IPアドレスを設定します。
+            bgp router-id <HOST_ALPHA_TAILSCALE_IP>
+
+            # 通信相手であるホストβを、同じAS番号65001内のネイバー（iBGPピア）として定義します。
+            # 接続先はホストβのTailscale IPアドレスです。
+            neighbor <HOST_BETA_TAILSCALE_IP> remote-as 65001
+
+            # --- 広報する経路情報の設定 ---
+            # IPv4ユニキャストアドレスファミリーの設定モードに移行します。
+            address-family ipv4 unicast
+
+            # Anycast VIPである 10.0.0.100/32 の経路情報を、このBGPプロセスから広報するように設定します。
+            network 10.0.0.100/32
+
+            # アドレスファミリーの設定を終了します。
+            exit-address-family
+
+            # BGPの設定を終了します。
+            exit
+
+            # --- BFDの設定を開始します ---
+            # BFDのコンフィギュレーションモードに移行します。
+            bfd
+
+            # ホストβのTailscale IPアドレスとの間でBFDセッションを確立するように設定します。
+            # これにより、BGPネイバー間の死活監視が高速化されます。
+            peer <HOST_BETA_TAILSCALE_IP>
+
+            # BFDの設定を終了します。
+            exit
+
+            # --- 設定の保存と終了 ---
+            # コンフィギュレーションモードを終了します。
+            end
+
+            # 現在の実行中設定をスタートアップ設定ファイル（/etc/frr/frr.conf）に保存します。
+            # これにより、サーバーを再起動しても設定が維持されます。
+            write memory
+
+            # vtyshを終了します。
+            exit
+            ```
+    1. ホスト2で実行するコマンド
+        - 次に、ホスト2にSSHでログインし、同様に`vtysh`を使って設定を行います。ホスト1とはIPアドレスが逆になる点に注意してください。
+            ```bash
+            # FRRの対話型シェルを起動します。
+            sudo vtysh
+            ```
+        - `vtysh`が起動すると、プロンプトが`hostname#`のように変わります。ここから以下のコマンドを一行ずつ入力していきます。
+            ```
+            # グローバルコンフィギュレーションモードに移行します。
+            configure terminal
+
+            # --- BGPの設定を開始します ---
+            # プライベートAS番号65001を使用してBGPプロセスを開始します。
+            router bgp 65001
+
+            # BGPルーターを識別するためのIDとして、ホストβ自身のTailscale IPアドレスを設定します。
+            bgp router-id <HOST_BETA_TAILSCALE_IP>
+
+            # 通信相手であるホストαを、同じAS番号65001内のネイバー（iBGPピア）として定義します。
+            # 接続先はホストαのTailscale IPアドレスです。
+            neighbor <HOST_ALPHA_TAILSCALE_IP> remote-as 65001
+
+            # --- 広報する経路情報の設定 ---
+            # IPv4ユニキャストアドレスファミリーの設定モードに移行します。
+            address-family ipv4 unicast
+
+            # Anycast VIPである 10.0.0.100/32 の経路情報を、このBGPプロセスから広報するように設定します。
+            network 10.0.0.100/32
+
+            # アドレスファミリーの設定を終了します。
+            exit-address-family
+
+            # BGPの設定を終了します。
+            exit
+
+            # --- BFDの設定を開始します ---
+            # BFDのコンフィギュレーションモードに移行します。
+            bfd
+
+            # ホストαのTailscale IPアドレスとの間でBFDセッションを確立するように設定します。
+            peer <HOST_ALPHA_TAILSCALE_IP>
+
+            # BFDの設定を終了します。
+            exit
+
+            # --- 設定の保存と終了 ---
+            # コンフィギュレーションモードを終了します。
+            end
+
+            # 現在の実行中設定をスタートアップ設定ファイル（/etc/frr/frr.conf）に保存します。
+            write memory
+
+            # vtyshを終了します。
+            exit
+            ```
+    1. VIPの割り当てとFRRの再起動 (ホスト1,2で実行)
+        - VIPをループバックインターフェースに割り当て、FRRを再起動します。
+            ```bash
+            # VIPをループバックインターフェースに追加します。
+            sudo ip addr add 10.0.0.100/32 dev lo
+
+            # FRRサービスを再起動して設定を適用します。
+            sudo systemctl restart frr
+            ```
+        - `vtysh`コマンドでBGPピアとBFDセッションが確立されていることを確認します。
+            - `show ip bgp summary`の出力で、ピアのアドレスがTailscale IPになっているはずです。
+    1. Tailscaleネットワーク上の他のノードに経路情報を伝えるための追加設定
+        - デフォルトの状態では、FRRがBGPで広報している経路をTailscaleネットワーク内の他のノードは自動的に認識しないため、pingは通りません。
+        - これは、Tailscaleのセキュリティモデルとルーティングの仕組みに起因します。
+            - Tailscaleは、各ノードが明示的に「この経路を提供します（advertise）」と宣言し、他のノードが「その経路を受け入れます（accept）」と許可しない限り、`100.x.y.z`のIPアドレス空間以外の通信を中継しません。
+        - 以下のコマンドをホスト1とホスト2の両方で実行して下さい
+            ```
+            # --advertise-routes フラグを追加して、Anycast VIPの経路を広報します。
+            # 既存の tailscale up コマンドに追記する形になります。
+            sudo tailscale up --advertise-routes=10.0.0.100/32
+            ```
+            - Tailscale管理コンソールでの承認:
+                1. (https://login.tailscale.com/admin/machines)にログインしますにログインします)。
+                1. ホスト1とホスト2のマシンの横にある「...」メニューをクリックし、「Edit route settings...」を選択します。
+                1. 10.0.0.100/32 のルートが表示されているので、スイッチをオンにして承認します。
+        - Anycast VIPにアクセスしたいすべてのクライアントノードで実行してください。
+            ```bash
+            # --accept-routes フラグを追加して、他のノードが広報した経路を受け入れます。
+            sudo tailscale up --accept-routes
+            ```
+              
+
+
+
 ## Execution Client / Consensus Client
 
 実行クライアント、ビーコンクライアントは可能な限り複数の実装から選んで分散化させることが望ましい
@@ -427,8 +643,8 @@ obol collectiveのドキュメントからテストされていることが確�
 ### 選定
 
 1. Lido CSM
-1. Puffer.fi
 1. Rocket Pool
+1. Diva Staking
 
 #### 選定理由
 
