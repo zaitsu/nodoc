@@ -33,7 +33,7 @@ Bonded Validator と DVT を利用して拡張可能なステーキング戦略�
 | 0 | documents | nodoc | - | このページを含むドキュメント群 |
 | 1 | Reth,Lighthouse | rethhnode | https://github.com/paradigmxyz/reth/tree/main/etc | rethとlighthouseのdocker関連ファイル群 |
 | 2 | Erigon | erigonode | https://github.com/zaitsu/erigonode | erigon3のdocker関連ファイル群 |
-| 3 | Nethermind,Nimbus | nnimnode | - | NethermindとNimbusのdocker関連ファイル群 |
+| 3 | Nethermind,Nimbus | nenimnode | - | NethermindとNimbusのdocker関連ファイル群 |
 | 4 | SSV | ssv-stack | https://github.com/ssvlabs/ssv-stack | ssv公式のスタック |
 | 5 | Obol | charon-distributed-validator-node | https://github.com/ObolNetwork/charon-distributed-validator-node | obol公式のスタック |
 
