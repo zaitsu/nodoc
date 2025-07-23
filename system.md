@@ -60,6 +60,85 @@ Bonded Validator と DVT を利用して拡張可能なステーキング戦略�
 
 ※ obolと接続するバリデータークライアントをどこに置くか決めかねてるが、パフォーマンス次第ではCloudRunやCaaSでも良い気がする
 
+### Add User
+
+```
+# 新しい管理者ユーザーを作成
+sudo adduser jamie
+sudo usermod -aG sudo jamie
+# rootのパスワードをロックし、SSHログインを禁止
+sudo passwd -l root
+sudo sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+```
+
+### (必要であれば) ufw
+
+```
+sudo ufw allow ssh       # 22/tcp
+sudo ufw allow 30303/tcp # EL P2P
+sudo ufw allow 30303/udp # EL P2P
+sudo ufw allow 9000/tcp  # CL P2P
+sudo ufw allow 9000/udp  # CL P2P
+sudo ufw enable
+```
+
+### rocketpool
+
+```
+wget https://github.com/rocket-pool/smartnode/releases/latest/download/rocketpool-cli-linux-amd64 -O ~/.local/bin/rocketpool
+sudo usermod -aG docker jamie
+rocketpool service install
+```
+
+勝手にdockerがインストールされます。手動でインストールする場合は以下です。
+
+#### Docker install
+
+https://docs.docker.com/engine/install/ubuntu/
+
+1. Set up Docker's apt repository.
+    ```
+    # Add Docker's official GPG key:
+    sudo apt-get update
+    sudo apt-get install ca-certificates curl
+    sudo install -m 0755 -d /etc/apt/keyrings
+    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+    # Add the repository to Apt sources:
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+      $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt-get update
+    ```
+1. Install the Docker packages.
+    ```
+    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+    ```
+
+### Auto security update
+
+```
+sudo apt-get update
+sudo apt-get install -y unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades
+```
+
+### Install tmux
+
+```
+sudo apt-get update
+sudo apt-get install -y tmux
+cat > ~/.tmux.conf
+unbind C-b
+set -g prefix C-t
+bind C-t send-prefix
+
+set-window-option -g mode-keys vi
+```
+
 ### Locale settings
 
 localeを`C`にします。
