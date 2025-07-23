@@ -1,5 +1,7 @@
 # SSV
 
+[RocketPool](https://docs.rocketpool.net/)は歴史の長いパーミッションレスの分散型リキッドステーキングプロトコルであり、現在はLEB8が最小ですが、DAOによると将来的にはLEB4からLEB1.5まで下がる可能性があります。加えて、Megapoolの開発と監査が進んでおり、バリデーター運用の効率性も大幅に向上する見込みで、誰でも通常の(「バニラ」)イーサリアムバリデーターを実行するよりもはるかに高い資本効率でイーサリアムブロックチェーン上でバリデーターの実行を開始できます。
+
 [コミュニティステーキングモジュール](https://operatorportal.lido.fi/modules/community-staking-module)(CSM)は、[Lidoプロトコル](https://lido.fi/)の最初のパーミッションレスモジュールであり、誰でも通常の(「バニラ」)イーサリアムバリデーターを実行するよりもはるかに高い資本効率でイーサリアムブロックチェーン上でバリデーターの実行を開始できます。
 
 分散型バリデーター([DVT](https://ethereum.org/en/staking/dvt/))は、複数のノードで実行されるイーサリアムバリデーターです。 [SSV Network](https://ssv.network/)は、実行中の分散バリデーターにパーミッションレスなアクセスを提供するツールのセットです。
@@ -331,7 +333,7 @@ SSVの支払いを承認します。
 
 <img src="./img/upload_74f2b5c6a587132973b626218d6b52b6.png" width="1200">
 
-この後、バリデーターを`Lido CSM`に登録する準備が整います。
+この後、バリデーターを`RocketPool`、または`Lido CSM`に登録する準備が整います。
 
 ## MEV Boost
 
@@ -444,11 +446,11 @@ cat merge-output/deposit_data-yyyy-MM-ddThh-mm-ssZ.json \
 
 <img src="./img/upload_df324e8937bfc2565235936d1d463b73.png" width="1200">
 
-## Monitoring the CSM operator
+### Monitoring the CSM operator
 
 この[ガイド](https://dvt-homestaker.stakesaurus.com/bonded-validators-setup/lido-csm/monitoring-and-address-management)に従って、 CSM オペレーターを監視するために必要な手順を確認できます。
 
-## Claiming Rewards
+### Claiming Rewards
 
 CSMの報酬には、ボンズ報酬とオペレーター報酬の2種類があります。Lido CSMの債券はstETHで保持されており、stETHはラバシングトークンであり、1日1回バランスが変化します(おそらく増加します)。オペレーターの報酬は、ノードの運用から得られ、実行レイヤーとコンセンサスレイヤーの報酬の一部が含まれます。これらはすべてのオペレーターに共通しており、オペレーターが一定の閾値を超えた場合に授与されます。これは、Holeskyテストネットでは7日ごと、メインネットでは28日ごとに計算されます。
 
@@ -458,6 +460,14 @@ CSMの報酬には、ボンズ報酬とオペレーター報酬の2種類があ�
 
 <img src="./img/upload_e61118e39c370aef02cf92bbcf96e1ea.png" width="1200">
 
+## Deploy the keys to RocketPool
+
+マイグレーションする手順しか見つからないため、まずはsmartnodeでバリデータを起動する必要があります。
+
+- [Migrate Rocket Pool minipools to "serverless" SSV](https://gist.github.com/0xhackworth/15b9dec8a783ebdc27a553c889e4d43b)
+
+上記を参考にしてCSMとは別のDKGセレモニーを行ったうえでRocketPoolのSmartnodeに認識してもらう必要があります。
+
 ## Exiting Validators
 
 [SSV Web](https://app.ssv.network/)アプリを使用してバリデーターを終了できます。
@@ -466,7 +476,9 @@ CSMの報酬には、ボンズ報酬とオペレーター報酬の2種類があ�
 
 バリデータの`Exit`トランザクションが承認されるまでは若干時間がかかります。
 
-なお、Lido CSMの担保を引き出す祭にも若干の制約があるため、以下のFAQに着目して下さい。
+### Lido CSM
+
+Lido CSMの担保を引き出す祭にも若干の制約があるため、以下のFAQに着目して下さい。
 
 ```
 バリデーターはいつ出金されますか?
@@ -477,6 +489,12 @@ CSMの報酬には、ボンズ報酬とオペレーター報酬の2種類があ�
 引き出しプロセス:アクティブなバリデータセットを終了した後、バリデータは引き出し可能な状態になります。この状態は、引き出し可能なエポックによって決定され、エグジットエポック + 最小遅延の 256 エポック (~27 時間) に設定されます。
 出金の確定:出金可能なエポックに達すると、バリデーターの残高は、コンセンサスレイヤーの出金スイープサイクルの次の反復内で、バリデータの出金資格情報(Lidoプロトコルの場合はLido Withdrawal Vault)に転送されます。これにかかる時間は、スイープサイクル全体におけるバリデータの位置と、引き出し可能なエポックとそのターンがスイープされるタイミングとの間の時間差によって異なります。出金が発生すると、出金の事実を無許可でCSMに報告することができます。これが発生すると、このバリデーターに使用されているNode Operatorのボンドの一部が解放されます。この時点で、ノードオペレーターは「ボンド&リワード請求」タブでボンドを請求することができます。
 ```
+
+### RocketPool
+
+RocketPoolの担保を引き出す祭にも若干の制約があると思われるため、きちんと確認してから`Exit`して下さい。
+
+## その他
 
 **利用している実行クライアントのRPC URLのレートリミットにかかってトランザクションが送れないことがありますので注意してください。**
 
