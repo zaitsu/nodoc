@@ -512,7 +512,8 @@ ELとCLを実行してるホスト2台で設定します。
             ```
             # --advertise-routes フラグを追加して、Anycast VIPの経路を広報します。
             # 既存の tailscale up コマンドに追記する形になります。
-            sudo tailscale up --advertise-routes=10.0.0.100/32
+            #sudo tailscale up --advertise-routes=10.0.0.100/32
+            sudo tailscale up --advertise-routes 10.0.0.100/32,192.168.1.0/24    # xg-100neのセグメントを加える
             ```
             - Tailscale管理コンソールでの承認:
                 1. (https://login.tailscale.com/admin/machines)にログインしますにログインします)。
